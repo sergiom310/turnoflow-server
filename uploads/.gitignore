@@ -1,0 +1,13 @@
+# Ignorar todos los archivos subidos reales
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.pdf
+*.doc
+*.docx
+*.txt
+
+# Pero mantener los .gitkeep
+!.gitkeep

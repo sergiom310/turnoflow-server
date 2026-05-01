@@ -1,0 +1,11 @@
+node_modules/
+.env
+logs/
+uploads/logo/*
+uploads/usuarios/*
+uploads/clientes/*
+uploads/documentos/*
+!uploads/logo/.gitkeep
+!uploads/usuarios/.gitkeep
+!uploads/clientes/.gitkeep
+!uploads/documentos/.gitkeep
