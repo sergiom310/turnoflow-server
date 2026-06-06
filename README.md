@@ -22,45 +22,74 @@ Configuración regional Colombia (es-CO, COP, DD/MM/YYYY, UTC-5).
 
 ---
 
-## Inicio rápido
+## Inicio rápido (primera vez)
 
 ```bash
+# 1. Instalar dependencias
 pnpm install
-pnpm run dev      # con nodemon
-pnpm start        # producción
+
+# 2. Copiar variables de entorno y editar con tus credenciales MySQL
+cp .env.example .env
+
+# 3. Crear la BD landlord en MySQL/MariaDB
+#    (si usas Docker con MariaDB)
+docker exec -it <nombre_contenedor> mariadb -u root -p \
+  -e "CREATE DATABASE IF NOT EXISTS turnoflow_landlord CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 4. Correr migraciones landlord (crea las 5 tablas centrales)
+pnpm run migrate:landlord
+
+# 5. Sembrar datos iniciales (11 tipos de negocio, 4 planes, superadmin)
+pnpm run seed:landlord
+
+# 6. Arrancar en modo desarrollo
+pnpm run dev
 ```
 
-### Variables de entorno
+## Scripts disponibles
 
-Crear archivo `.env` en la raíz de `/server`:
+| Comando | Descripción |
+|---|---|
+| `pnpm run dev` | Servidor con nodemon (hot-reload) |
+| `pnpm start` | Servidor en producción |
+| `pnpm run migrate:landlord` | Corre migraciones en la BD landlord |
+| `pnpm run migrate:landlord down` | Revierte la última migración landlord |
+| `pnpm run migrate:tenant -- --all` | Corre migraciones en todos los tenants activos |
+| `pnpm run migrate:tenant -- --db <nombre_bd>` | Corre migraciones en un tenant específico |
+| `pnpm run seed:landlord` | Siembra tipos de negocio, planes y superadmin inicial |
+
+> **Superadmin inicial:** usuario `superadmin` / contraseña `super123` — cambiar en producción.
+
+## Variables de entorno
+
+Crear archivo `.env` en la raíz de `/server` (ver `.env.example`):
 
 ```env
 PORT=3001
 NODE_ENV=development
 
-# Base de datos
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=turnoflow
+# Base de datos (credenciales compartidas para landlord + todos los tenants)
+DB_HOST=127.0.0.1
+DB_PORT=3307        # Puerto expuesto por Docker (ajustar según contenedor)
 DB_USER=root
 DB_PASS=tu_password
+DB_LANDLORD_NAME=turnoflow_landlord
 
-# JWT
-JWT_SECRET=cambia_esto_por_algo_seguro
+# JWT — usar cadenas aleatorias largas en producción
+JWT_SECRET=cambia_esto_por_cadena_aleatoria_segura_min32chars
 JWT_EXPIRES_IN=24h
-JWT_REFRESH_SECRET=otro_secreto_seguro
+JWT_REFRESH_SECRET=otro_secreto_diferente_aleatorio_min32chars
 JWT_REFRESH_EXPIRES_IN=7d
-
-# CORS — origen del frontend
-CORS_ORIGIN=http://localhost:5173
 
 # Uploads
 UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=3145728
 
-# CRON / Retención de logs (días)
+# Auditoría
 AUDIT_RETENTION_DAYS=90
 ```
+
+> **Nota sobre JWT_SECRET:** es una clave privada que solo existe en el backend para firmar y verificar tokens. El frontend nunca la necesita ni la ve.
 
 ---
 

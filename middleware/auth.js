@@ -4,21 +4,29 @@ const { sendError } = require('../utils/response')
 
 /**
  * Middleware de autenticación JWT.
- * Extrae el token del header Authorization: Bearer <token>
- * Agrega req.user con el payload decodificado.
+ *
+ * Estrategia (en orden de prioridad):
+ *   1. Cookie httpOnly `tf_access_token`  — usada por tenants (login web)
+ *   2. Header `Authorization: Bearer <token>` — usada por superadmin y clientes API
+ *
+ * Resultado: popula req.user con el payload del token.
  */
 const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization
+  // 1. Cookie httpOnly (tenants)
+  const cookieToken = req.cookies?.tf_access_token
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  // 2. Bearer header (superadmin / API)
+  const authHeader = req.headers.authorization
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
+
+  const token = cookieToken || bearerToken
+
+  if (!token) {
     return sendError(res, 'Token de autenticación requerido', 401, 'AUTH_REQUIRED')
   }
 
-  const token = authHeader.substring(7)
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET)
-    req.user = decoded
+    req.user = jwt.verify(token, JWT_SECRET)
     next()
   } catch (error) {
     if (error.name === 'TokenExpiredError') {

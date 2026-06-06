@@ -6,30 +6,46 @@ const helmet = require('helmet')
 const cors = require('cors')
 const morgan = require('morgan')
 
-const config = require('./config/config')
-const { sequelize } = require('./models')
-const routes = require('./routes')
+const config       = require('./config/config')
+const { landlordDb } = require('./models/landlord')
+const routes       = require('./routes')
 const errorHandler = require('./middleware/errorHandler')
-const logger = require('./utils/logger')
+const logger       = require('./utils/logger')
+const cookieParser = require('cookie-parser')
 
 const app = express()
 
 // ── Seguridad: cabeceras HTTP ───────────────────────────────
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }, // permite servir uploads al front
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
 }))
 
 // ── CORS ───────────────────────────────────────────────────
 app.use(cors({
-  origin: config.CORS_ORIGIN,
+  origin: (origin, callback) => {
+    // Sin origin (Postman, curl, mismo servidor) → permitir
+    if (!origin) return callback(null, true)
+
+    if (config.NODE_ENV !== 'production') {
+      // Dev: permitir localhost y turnoflow.local (con o sin subdominio)
+      const devPattern = /^https?:\/\/((.*\.)?turnoflow\.local|localhost)(:\d+)?$/
+      if (devPattern.test(origin)) return callback(null, true)
+      return callback(new Error('No permitido por CORS (dev)'))
+    }
+
+    // Producción: solo *.turnoflow.co (https)
+    if (/^https:\/\/.*\.turnoflow\.co$/.test(origin)) return callback(null, true)
+    callback(new Error('No permitido por CORS'))
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Subdomain'],
 }))
 
 // ── Body parsers ───────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+app.use(cookieParser())
 
 // ── HTTP logging (solo desarrollo) ────────────────────────
 if (config.NODE_ENV !== 'production') {
@@ -58,16 +74,12 @@ app.use(errorHandler)
 // ── Arrancar servidor ──────────────────────────────────────
 const start = async () => {
   try {
-    await sequelize.authenticate()
-    logger.info('✅ Conexión a MySQL establecida')
-
-    // sync({ alter: true }) en desarrollo actualiza columnas sin borrar datos
-    // En producción usar migraciones Sequelize
-    await sequelize.sync({ alter: config.NODE_ENV === 'development' })
-    logger.info('✅ Modelos sincronizados con la base de datos')
+    // Verificar conexión a landlord DB (las tablas las crean las migraciones)
+    await landlordDb.authenticate()
+    logger.info(`✅ Landlord DB conectada: ${config.DB_LANDLORD_NAME}`)
 
     app.listen(config.PORT, () => {
-      logger.info(`🚀 TurnoFlow API corriendo en http://localhost:${config.PORT} [${config.NODE_ENV}]`)
+      logger.info(`🚀 TurnoFlow API en http://localhost:${config.PORT} [${config.NODE_ENV}]`)
     })
   } catch (error) {
     logger.error('Error al iniciar el servidor:', error)

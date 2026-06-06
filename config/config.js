@@ -5,11 +5,12 @@ const config = {
   NODE_ENV: process.env.NODE_ENV || 'development',
 
   // Base de datos
-  DB_HOST: process.env.DB_HOST || 'localhost',
-  DB_PORT: parseInt(process.env.DB_PORT) || 3306,
-  DB_NAME: process.env.DB_NAME || 'turnoflow',
-  DB_USER: process.env.DB_USER || 'root',
-  DB_PASS: process.env.DB_PASS || '',
+  DB_HOST:          process.env.DB_HOST          || 'localhost',
+  DB_PORT:          parseInt(process.env.DB_PORT) || 3306,
+  DB_USER:          process.env.DB_USER          || 'root',
+  DB_PASS:          process.env.DB_PASS          || '',
+  // BD del landlord (superadmin central)
+  DB_LANDLORD_NAME: process.env.DB_LANDLORD_NAME || 'turnoflow_landlord',
 
   // JWT
   JWT_SECRET: process.env.JWT_SECRET,
