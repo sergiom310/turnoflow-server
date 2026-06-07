@@ -24,7 +24,7 @@ jobs:
           envs: BACKEND_ENV,COMPOSE_ENV
           script: |
             set -e
-            cd /var/www/turnoflow/server
+            cd /var/www/turnoflow/backend
 
             echo "Pulling latest code..."
             git pull origin main
