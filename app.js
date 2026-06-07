@@ -40,8 +40,9 @@ app.use(cors({
 
     if (allowedOrigins.includes(origin)) return callback(null, true)
 
-    // Fallback por compatibilidad con despliegues antiguos
+    // Fallback por compatibilidad con despliegues antiguos y demo actual
     if (/^https:\/\/.*\.turnoflow\.co$/.test(origin)) return callback(null, true)
+    if (/^https:\/\/.*\.bitwia\.com$/.test(origin)) return callback(null, true)
     callback(new Error('No permitido por CORS'))
   },
   credentials: true,
