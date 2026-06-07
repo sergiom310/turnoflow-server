@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy NestJS to VPS
+    name: Deploy Backend to VPS
     runs-on: ubuntu-latest
 
     steps:
@@ -15,20 +15,22 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
+          COMPOSE_ENV: ${{ secrets.COMPOSE_ENV }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: deploy
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          envs: BACKEND_ENV
+          envs: BACKEND_ENV,COMPOSE_ENV
           script: |
             set -e
-            cd /var/www/turnoflow/backend
+            cd /var/www/turnoflow/server
 
             echo "Pulling latest code..."
             git pull origin main
 
-            echo "Writing .env..."
+            echo "Writing environment files..."
+            printf '%s' "$COMPOSE_ENV" > /var/www/turnoflow/.env
             printf '%s' "$BACKEND_ENV" > .env
 
             echo "Building and restarting backend..."
