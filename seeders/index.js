@@ -218,7 +218,7 @@ const SUPERADMIN = {
   password:   'super123',   // ← cambiar en producción
   first_name: 'Super',
   last_name:  'Admin',
-  email:      'superadmin@turnoflow.co',
+  email:      'superadmin@turnoflow.com',
 }
 
 // ─────────────────────────────────────────────────────────────
