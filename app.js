@@ -15,6 +15,11 @@ const cookieParser = require('cookie-parser')
 
 const app = express()
 
+const allowedOrigins = (config.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
 // ── Seguridad: cabeceras HTTP ───────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -33,7 +38,9 @@ app.use(cors({
       return callback(new Error('No permitido por CORS (dev)'))
     }
 
-    // Producción: solo *.turnoflow.co (https)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+
+    // Fallback por compatibilidad con despliegues antiguos
     if (/^https:\/\/.*\.turnoflow\.co$/.test(origin)) return callback(null, true)
     callback(new Error('No permitido por CORS'))
   },
