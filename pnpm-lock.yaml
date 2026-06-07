@@ -53,6 +53,9 @@ importers:
       sharp:
         specifier: ^0.33.1
         version: 0.33.5
+      umzug:
+        specifier: ^3.8.2
+        version: 3.8.2(@types/node@25.6.0)
       winston:
         specifier: ^3.11.0
         version: 3.19.0
@@ -63,9 +66,6 @@ importers:
       sequelize-cli:
         specifier: ^6.6.5
         version: 6.6.5
-      umzug:
-        specifier: ^3.8.2
-        version: 3.8.2(@types/node@25.6.0)
 
 packages:
 
