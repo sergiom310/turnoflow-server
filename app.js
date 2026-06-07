@@ -20,24 +20,24 @@ const allowedOrigins = (config.CORS_ORIGIN || '')
   .map((origin) => origin.trim())
   .filter(Boolean)
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true
+
+  if (config.NODE_ENV !== 'production') {
+    return /^https?:\/\/((.*\.)?turnoflow\.local|localhost)(:\d+)?$/.test(origin)
+  }
+
+  if (allowedOrigins.includes(origin)) return true
+  if (/^https:\/\/.*\.turnoflow\.co$/.test(origin)) return true
+  if (/^https:\/\/.*\.bitwia\.com$/.test(origin)) return true
+
+  return false
+}
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Sin origin (Postman, curl, mismo servidor) → permitir
-    if (!origin) return callback(null, true)
-
-    if (config.NODE_ENV !== 'production') {
-      // Dev: permitir localhost y turnoflow.local (con o sin subdominio)
-      const devPattern = /^https?:\/\/((.*\.)?turnoflow\.local|localhost)(:\d+)?$/
-      if (devPattern.test(origin)) return callback(null, true)
-      return callback(new Error('No permitido por CORS (dev)'))
-    }
-
-    if (allowedOrigins.includes(origin)) return callback(null, true)
-
-    // Fallback por compatibilidad con despliegues antiguos y demo actual
-    if (/^https:\/\/.*\.turnoflow\.co$/.test(origin)) return callback(null, true)
-    if (/^https:\/\/.*\.bitwia\.com$/.test(origin)) return callback(null, true)
-    callback(new Error('No permitido por CORS'))
+    if (isAllowedOrigin(origin)) return callback(null, true)
+    callback(new Error(config.NODE_ENV !== 'production' ? 'No permitido por CORS (dev)' : 'No permitido por CORS'))
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -51,6 +51,24 @@ app.use(helmet({
 }))
 
 // ── CORS ───────────────────────────────────────────────────
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+
+  if (origin && isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin)
+    res.header('Vary', 'Origin')
+    res.header('Access-Control-Allow-Credentials', 'true')
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-Subdomain')
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(origin && isAllowedOrigin(origin) ? 204 : 403)
+  }
+
+  next()
+})
+
 app.options('*', cors(corsOptions))
 app.use(cors(corsOptions))
 
