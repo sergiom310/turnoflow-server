@@ -20,13 +20,7 @@ const allowedOrigins = (config.CORS_ORIGIN || '')
   .map((origin) => origin.trim())
   .filter(Boolean)
 
-// ── Seguridad: cabeceras HTTP ───────────────────────────────
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-}))
-
-// ── CORS ───────────────────────────────────────────────────
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     // Sin origin (Postman, curl, mismo servidor) → permitir
     if (!origin) return callback(null, true)
@@ -48,7 +42,17 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Subdomain'],
+  optionsSuccessStatus: 204,
+}
+
+// ── Seguridad: cabeceras HTTP ───────────────────────────────
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
 }))
+
+// ── CORS ───────────────────────────────────────────────────
+app.options('*', cors(corsOptions))
+app.use(cors(corsOptions))
 
 // ── Body parsers ───────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }))
