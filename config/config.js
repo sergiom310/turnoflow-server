@@ -9,6 +9,8 @@ const config = {
   DB_PORT:          parseInt(process.env.DB_PORT) || 3306,
   DB_USER:          process.env.DB_USER          || 'root',
   DB_PASS:          process.env.DB_PASS          || '',
+  DB_ADMIN_USER:    process.env.DB_ADMIN_USER    || process.env.DB_USER || 'root',
+  DB_ADMIN_PASS:    process.env.DB_ADMIN_PASS    || process.env.DB_PASS || '',
   // BD del landlord (superadmin central)
   DB_LANDLORD_NAME: process.env.DB_LANDLORD_NAME || 'turnoflow_landlord',
 

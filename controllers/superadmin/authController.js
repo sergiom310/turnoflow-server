@@ -1,6 +1,7 @@
 'use strict'
 const bcrypt = require('bcrypt')
 const jwt    = require('jsonwebtoken')
+const { Op } = require('sequelize')
 const { SuperadminUser }   = require('../../models/landlord')
 const { JWT_SECRET, JWT_EXPIRES_IN, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRES_IN } = require('../../config/config')
 const { sendSuccess, sendError } = require('../../utils/response')
@@ -17,7 +18,12 @@ const generateTokens = (user) => {
 const login = async (req, res) => {
   try {
     const { username, password } = req.body
-    const user = await SuperadminUser.findOne({ where: { username, is_active: true } })
+    const user = await SuperadminUser.findOne({
+      where: {
+        [Op.or]: [{ username }, { email: username }],
+        is_active: true,
+      },
+    })
     if (!user) return sendError(res, 'Credenciales incorrectas', 401, 'INVALID_CREDENTIALS')
 
     const valid = await bcrypt.compare(password, user.password_hash)

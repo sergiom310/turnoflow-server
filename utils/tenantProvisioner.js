@@ -39,13 +39,19 @@ const provisionTenant = async (tenant, adminUser = null) => {
   const { db_name } = tenant
 
   // ── 1. Crear la BD ───────────────────────────────────────
-  const rootSeq = new Sequelize(null, config.DB_USER, config.DB_PASS, {
+  const adminSeq = new Sequelize(null, config.DB_ADMIN_USER, config.DB_ADMIN_PASS, {
     host: config.DB_HOST, port: config.DB_PORT, dialect: 'mysql', logging: false,
   })
-  await rootSeq.query(
+  await adminSeq.query(
     `CREATE DATABASE IF NOT EXISTS \`${db_name}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
   )
-  await rootSeq.close()
+
+  if (config.DB_USER && config.DB_USER !== config.DB_ADMIN_USER) {
+    await adminSeq.query(`GRANT ALL PRIVILEGES ON \`${db_name}\`.* TO '${config.DB_USER}'@'%'`)
+    await adminSeq.query('FLUSH PRIVILEGES')
+  }
+
+  await adminSeq.close()
   logger.info(`✅ BD tenant creada: ${db_name}`)
 
   // ── 2. Correr migraciones ────────────────────────────────
@@ -107,11 +113,11 @@ const provisionTenant = async (tenant, adminUser = null) => {
 const deprovisionTenant = async (dbName) => {
   await removeTenantConnection(dbName)
 
-  const rootSeq = new Sequelize(null, config.DB_USER, config.DB_PASS, {
+  const adminSeq = new Sequelize(null, config.DB_ADMIN_USER, config.DB_ADMIN_PASS, {
     host: config.DB_HOST, port: config.DB_PORT, dialect: 'mysql', logging: false,
   })
-  await rootSeq.query(`DROP DATABASE IF EXISTS \`${dbName}\``)
-  await rootSeq.close()
+  await adminSeq.query(`DROP DATABASE IF EXISTS \`${dbName}\``)
+  await adminSeq.close()
   logger.info(`🗑️  BD tenant eliminada: ${dbName}`)
 }
 
