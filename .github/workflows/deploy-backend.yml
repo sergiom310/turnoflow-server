@@ -24,6 +24,17 @@ jobs:
           envs: BACKEND_ENV,COMPOSE_ENV
           script: |
             set -e
+
+            if [ -z "$COMPOSE_ENV" ]; then
+              echo "COMPOSE_ENV secret is empty"
+              exit 1
+            fi
+
+            if [ -z "$BACKEND_ENV" ]; then
+              echo "BACKEND_ENV secret is empty"
+              exit 1
+            fi
+
             cd /var/www/turnoflow/backend
 
             echo "Pulling latest code..."
