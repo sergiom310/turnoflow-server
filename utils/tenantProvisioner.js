@@ -61,7 +61,7 @@ const provisionTenant = async (tenant, adminUser = null) => {
 
   const umzug = new Umzug({
     migrations: {
-      glob: path.join(__dirname, '../migrations/tenant/*.js'),
+      glob: path.join(__dirname, '../migrations/tenant/*.js').replace(/\\/g, '/'),
       resolve: ({ name, path: mPath }) => {
         const migration = require(mPath)
         return {

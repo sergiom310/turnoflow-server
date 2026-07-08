@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim
+FROM node:24-bookworm-slim
 
 WORKDIR /app
 
@@ -7,6 +7,6 @@ RUN npm install --omit=dev
 
 COPY . .
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["node", "app.js"]

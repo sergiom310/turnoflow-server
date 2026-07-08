@@ -41,7 +41,6 @@ const PLANS = [
 
 const SUPERADMIN = {
   username:   'superadmin',
-  password:   'super123',   // ← ¡Cambiar en producción!
   first_name: 'Super',
   last_name:  'Admin',
   email:      'superadmin@turnoflow.co',

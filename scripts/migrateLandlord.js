@@ -27,7 +27,7 @@ const run = async () => {
 
   const umzug = new Umzug({
     migrations: {
-      glob: path.join(__dirname, '../migrations/landlord/*.js'),
+      glob: path.join(__dirname, '../migrations/landlord/*.js').replace(/\\/g, '/'),
       resolve: ({ name, path: mPath }) => {
         const migration = require(mPath)
         return {
