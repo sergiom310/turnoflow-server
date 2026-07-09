@@ -18,12 +18,21 @@ module.exports = async (req, res, next) => {
     // 1. Header explícito (dev / Postman / clientes SPA en localhost)
     let subdomain = req.headers['x-tenant-subdomain']
 
-    // 2. Subdominio del host (producción)
+    // 2. Subdominio del host (fallback para producción sin header)
+    // Usa PLATFORM_DOMAIN para extraer correctamente el tenant incluso cuando
+    // el dominio raíz es un subdominio de otro TLD (ej: turnoflow.probeta.dev)
     if (!subdomain) {
-      const host  = req.hostname // e.g. 'barberia-juan.turnoflow.co'
-      const parts = host.split('.')
-      // Necesita mínimo 3 partes: subdomain.domain.tld
-      if (parts.length >= 3) subdomain = parts[0]
+      const host           = req.hostname
+      const platformDomain = require('../config/config').PLATFORM_DOMAIN
+      if (platformDomain && host.endsWith(`.${platformDomain}`)) {
+        // cliente1.turnoflow.probeta.dev → 'cliente1'
+        const sub = host.slice(0, -(platformDomain.length + 1))
+        if (sub && !sub.includes('.')) subdomain = sub
+      } else if (!platformDomain) {
+        // Fallback legacy: primer segmento si hay al menos 3 partes
+        const parts = host.split('.')
+        if (parts.length >= 3) subdomain = parts[0]
+      }
     }
 
     if (!subdomain) {

@@ -20,6 +20,10 @@ const config = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 
+  // Dominio raíz de la plataforma (sin protocolo, sin trailing slash)
+  // Probeta: turnoflow.probeta.dev  |  Producción: turnoflow.com
+  PLATFORM_DOMAIN: process.env.PLATFORM_DOMAIN || '',
+
   // CORS
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
 
