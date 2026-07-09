@@ -23,11 +23,13 @@ const allowedOrigins = (config.CORS_ORIGIN || '')
 const isAllowedOrigin = (origin) => {
   if (!origin) return true
 
+  // Orígenes explícitos en CORS_ORIGIN → siempre permitidos (dev y prod)
+  if (allowedOrigins.includes(origin)) return true
+
   if (config.NODE_ENV !== 'production') {
     return /^https?:\/\/((.*\.)?turnoflow\.local|localhost)(:\d+)?$/.test(origin)
   }
 
-  if (allowedOrigins.includes(origin)) return true
   if (/^https:\/\/.*\.turnoflow\.co$/.test(origin)) return true
   if (/^https:\/\/.*\.bitwia\.com$/.test(origin)) return true
 
