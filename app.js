@@ -36,8 +36,17 @@ const isAllowedOrigin = (origin) => {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || isAllowedOrigin(origin)) return callback(null, true)
-    callback(new Error(config.NODE_ENV !== 'production' ? 'No permitido por CORS (dev)' : 'No permitido por CORS'))
+    // 🔍 Cazador de errores: Esto imprimirá el origen exacto en los logs de Docker
+    console.log("CORS ORGIN RECV:", origin);
+
+    // 1. Permitir si es undefined
+    // 2. Permitir si tu función isAllowedOrigin lo aprueba
+    // 3. ¡Parche definitivo!: Permitir si el string contiene tu dominio de producción
+    if (!origin || isAllowedOrigin(origin) || origin.includes('turnoflow.probeta.dev')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error(config.NODE_ENV !== 'production' ? 'No permitido por CORS (dev)' : 'No permitido por CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
