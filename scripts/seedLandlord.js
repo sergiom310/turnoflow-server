@@ -40,10 +40,11 @@ const PLANS = [
 ]
 
 const SUPERADMIN = {
-  username:   'superadmin',
+  username:   process.env.SA_USERNAME || 'superadmin',
   first_name: 'Super',
   last_name:  'Admin',
-  email:      'superadmin@turnoflow.co',
+  email:      process.env.SA_EMAIL    || 'superadmin@turnoflow.com',
+  password:   process.env.SA_PASSWORD || 'Admin1234!',
 }
 
 const seed = async () => {

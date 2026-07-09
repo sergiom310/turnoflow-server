@@ -5,6 +5,12 @@ const { sendError }            = require('../utils/response')
 const logger                   = require('../utils/logger')
 
 /**
+ * Subdominios reservados del sistema — nunca se tratan como tenant.
+ * Incluye el subdominio de la API y cualquier otro proyecto en el mismo dominio.
+ */
+const EXCLUDED_SUBDOMAINS = new Set(['api', 'www', 'dream'])
+
+/**
  * Middleware de resolución de tenant.
  *
  * Estrategia de identificación (en orden):
@@ -18,6 +24,9 @@ module.exports = async (req, res, next) => {
     // 1. Header explícito (dev / Postman / clientes SPA en localhost)
     let subdomain = req.headers['x-tenant-subdomain']
 
+    // Ignorar subdominios reservados del sistema
+    if (subdomain && EXCLUDED_SUBDOMAINS.has(subdomain)) subdomain = null
+
     // 2. Subdominio del host (fallback para producción sin header)
     // Usa PLATFORM_DOMAIN para extraer correctamente el tenant incluso cuando
     // el dominio raíz es un subdominio de otro TLD (ej: turnoflow.probeta.dev)
@@ -27,11 +36,11 @@ module.exports = async (req, res, next) => {
       if (platformDomain && host.endsWith(`.${platformDomain}`)) {
         // cliente1.turnoflow.probeta.dev → 'cliente1'
         const sub = host.slice(0, -(platformDomain.length + 1))
-        if (sub && !sub.includes('.')) subdomain = sub
+        if (sub && !sub.includes('.') && !EXCLUDED_SUBDOMAINS.has(sub)) subdomain = sub
       } else if (!platformDomain) {
         // Fallback legacy: primer segmento si hay al menos 3 partes
         const parts = host.split('.')
-        if (parts.length >= 3) subdomain = parts[0]
+        if (parts.length >= 3 && !EXCLUDED_SUBDOMAINS.has(parts[0])) subdomain = parts[0]
       }
     }
 
