@@ -36,7 +36,7 @@ const isAllowedOrigin = (origin) => {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (isAllowedOrigin(origin)) return callback(null, true)
+    if (!origin || isAllowedOrigin(origin)) return callback(null, true)
     callback(new Error(config.NODE_ENV !== 'production' ? 'No permitido por CORS (dev)' : 'No permitido por CORS'))
   },
   credentials: true,
