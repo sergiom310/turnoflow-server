@@ -17,14 +17,25 @@ const app = express()
 
 const allowedOrigins = (config.CORS_ORIGIN || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((o) => o.trim())
   .filter(Boolean)
+
+// Separar exactos (https://probeta.dev) de wildcards (https://*.probeta.dev)
+const exactOrigins = allowedOrigins.filter((o) => !o.includes('*'))
+const wildcardPatterns = allowedOrigins
+  .filter((o) => o.includes('*'))
+  .map((o) => new RegExp(
+    '^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '[^.]+') + '$'
+  ))
 
 const isAllowedOrigin = (origin) => {
   if (!origin) return true
 
-  // Producción: orígenes permitidos vienen exclusivamente de CORS_ORIGIN
-  if (allowedOrigins.includes(origin)) return true
+  // Orígenes exactos de CORS_ORIGIN
+  if (exactOrigins.includes(origin)) return true
+
+  // Wildcard patterns de CORS_ORIGIN (ej: https://*.probeta.dev)
+  if (wildcardPatterns.some((pattern) => pattern.test(origin))) return true
 
   // Desarrollo local: permitir localhost y *.local
   if (config.NODE_ENV !== 'production') {
