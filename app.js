@@ -82,7 +82,13 @@ app.use('/uploads', express.static(path.resolve(config.UPLOAD_DIR)))
 
 // ── Health check ───────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', env: config.NODE_ENV, timestamp: new Date().toISOString() })
+  res.json({
+    status: 'ok',
+    env: config.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    cors_origins: exactOrigins,
+    cors_wildcards: wildcardPatterns.map(p => p.toString()),
+  })
 })
 
 // ── API v1 ─────────────────────────────────────────────────
