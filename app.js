@@ -25,7 +25,7 @@ const exactOrigins = allowedOrigins.filter((o) => !o.includes('*'))
 const wildcardPatterns = allowedOrigins
   .filter((o) => o.includes('*'))
   .map((o) => new RegExp(
-    '^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '[^.]+') + '$'
+    '^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^.]+') + '$'
   ))
 
 const isAllowedOrigin = (origin) => {
